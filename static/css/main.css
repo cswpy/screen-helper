@@ -1,0 +1,18 @@
+html, body {
+    color: white !important;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif !important;
+    height: 100%;
+}
+
+body{
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.wrapper-box{
+    background-color: rgba(0,0,0,0.5);
+}
+
+h1{
+    font-size:4rem;
+}

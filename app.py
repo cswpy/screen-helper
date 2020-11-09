@@ -6,7 +6,8 @@ from imutils.video import VideoStream
 from gaze_tracking import GazeTracking
 from playsound import playsound
 import simpleaudio as sa
-from flask import Response, Flask, render_template
+from flask import Response, Flask, render_template, request, redirect, url_for
+from flask_socketio import SocketIO
 import threading
 import argparse
 import datetime
@@ -24,6 +25,8 @@ lock = threading.Lock()
 
 # initialize a flask object
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
 
 # initialize the video stream and allow the camera sensor to
 # warmup
@@ -35,6 +38,12 @@ time.sleep(2.0)
 def index():
 	# return the rendered template
 	return render_template("index.html")
+
+@app.route('/form-handler', methods=['POST'])
+def handle_data():
+	name = request.form['name']
+	mode = request.form['mode']
+	return render_template("working_page.html", mode=mode, name=name)
 
 def head_pose(frameCount):
 	# grab global references to the video stream, output frame, and
@@ -73,6 +82,7 @@ def head_pose(frameCount):
 			text = "Looking right"
 		elif gaze.is_left():
 			text = "Looking left"
+			socketio.emit('looking left', {'data': 30})
 		elif gaze.is_center():
 			text = "Looking center"
 		else:
@@ -148,8 +158,10 @@ if __name__ == '__main__':
 	t.start()
 
 	# start the flask app
-	app.run(host=args["ip"], port=args["port"], debug=True,
-		threaded=True, use_reloader=False)
+	# app.run(host=args["ip"], port=args["port"], debug=True,
+	# 	threaded=True, use_reloader=False)
+	socketio.run(app, host=args["ip"], port=args["port"], debug=True,
+		use_reloader=False)
 
 # release the video stream pointer
 vs.stop()
