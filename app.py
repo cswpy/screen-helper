@@ -2,17 +2,19 @@
 # python webstreaming.py --ip 0.0.0.0 --port 8000
 
 # import the necessary packages
-from estimate_head_pose import head_pose
 from imutils.video import VideoStream
-from flask import Response
-from flask import Flask
-from flask import render_template
+from gaze_tracking import GazeTracking
+from playsound import playsound
+import simpleaudio as sa
+from flask import Response, Flask, render_template
 import threading
 import argparse
 import datetime
 import imutils
 import time
 import cv2
+
+gaze=GazeTracking()
 
 # initialize the output frame and a lock used to ensure thread-safe
 # exchanges of the output frames (useful for multiple browsers/tabs
@@ -37,7 +39,7 @@ def index():
 def head_pose(frameCount):
 	# grab global references to the video stream, output frame, and
 	# lock variables
-	global vs, outputFrame, lock
+	global vs, outputFrame, lock, gaze
 
 	# initialize the motion detector and the total number of frames
 	# read thus far
@@ -48,35 +50,48 @@ def head_pose(frameCount):
 		# read the next frame from the video stream, resize it,
 		# convert the frame to grayscale, and blur it
 		frame = vs.read()
-		frame = imutils.resize(frame, width=400)
-		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-		gray = cv2.GaussianBlur(gray, (7, 7), 0)
+		# frame = imutils.resize(frame, width=400)
+		# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		# gray = cv2.GaussianBlur(gray, (7, 7), 0)
 
 		# grab the current timestamp and draw it on the frame
-		timestamp = datetime.datetime.now()
-		cv2.putText(frame, timestamp.strftime(
-			"%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+		# timestamp = datetime.datetime.now()
+		# cv2.putText(frame, timestamp.strftime(
+		# 	"%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10),
+		# 	cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
-		# if the total number of frames has reached a sufficient
-		# number to construct a reasonable background model, then
-		# continue to process the frame
-		if total > frameCount:
-			# detect motion in the image
-			motion = md.detect(gray)
+		# We send this frame to GazeTracking to analyze it
+		gaze.refresh(frame)
 
-			# cehck to see if motion was found in the frame
-			if motion is not None:
-				# unpack the tuple and draw the box surrounding the
-				# "motion area" on the output frame
-				(thresh, (minX, minY, maxX, maxY)) = motion
-				cv2.rectangle(frame, (minX, minY), (maxX, maxY),
-					(0, 0, 255), 2)
-		
-		# update the background model and increment the total number
-		# of frames read thus far
-		md.update(gray)
-		total += 1
+		frame = gaze.annotated_frame()
+		text = ""
+
+		if gaze.is_blinking():
+			text = "Blinking"
+
+		elif gaze.is_right():
+			text = "Looking right"
+		elif gaze.is_left():
+			text = "Looking left"
+		elif gaze.is_center():
+			text = "Looking center"
+		else:
+			text = "Attention lost"
+			#time.sleep(5)
+			# if (( not gaze.is_blinking()) or ( not gaze.is_left()) or ( not gaze.is_center())):
+			# 	threading.Thread(target=playsound, args=('sound1.wav',), daemon=True).start()
+			#wave_obj.play()
+		cv2.putText(frame, text, (90, 60), cv2.FONT_HERSHEY_DUPLEX, 1.6, (255, 255, 0), 2)
+
+		# left_pupil = gaze.pupil_left_coords()
+		# right_pupil = gaze.pupil_right_coords()
+		#cv2.putText(frame, "Left:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+		#cv2.putText(frame, "Right: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+
+		# cv2.imshow("Eye tracker",    frame)
+
+		if cv2.waitKey(1) == 27:
+			break
 
 		# acquire the lock, set the output frame, and release the
 		# lock
@@ -127,7 +142,7 @@ if __name__ == '__main__':
 	args = vars(ap.parse_args())
 
 	# start a thread that will perform motion detection
-	t = threading.Thread(target=head-pose, args=(
+	t = threading.Thread(target=head_pose, args=(
 		args["frame_count"],))
 	t.daemon = True
 	t.start()

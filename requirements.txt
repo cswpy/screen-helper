@@ -1,0 +1,7 @@
+opencv_python==4.4.0.46
+dlib==19.21.0
+simpleaudio==1.0.4
+numpy==1.19.3
+Flask==1.1.2
+imutils==0.5.3
+playsound==1.2.2
