@@ -9,9 +9,14 @@ $(document).ready(function() {
              });
          });
 
-            socket.on('looking left', function(){
-                alert("looking left!");
+            socket.on('attention lost', function(){
+                alert("Attention lost!");
             });
+
+            socket.on('class mode notification', function(){
+                alert("Take a break!");
+            });
+
             var random_num = Math.ceil(Math.random() * 7);
             var string = "url('/static/images/relaxing_" + random_num + ".jpg')";
 

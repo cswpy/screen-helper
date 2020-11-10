@@ -10,10 +10,29 @@ from flask import Response, Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO
 import threading
 import argparse
-import datetime
 import imutils
 import time
+import time
 import cv2
+
+# counters to keep track of number of eye position changes
+counter_screen = 0
+counter_attention_lost = 0
+#message keeps track of latest message displayed on video feed
+message = ""
+#now keeps track of the last time we compared the count of screen versus attention lost
+now = 0
+
+# Flags to keep track of whether the user was staring at screen/lost attention
+staring_screen = False
+attention_lost = False
+
+# Make person's name and mode global
+name = ""
+mode = ""
+
+# For study mode: how often to send a break notification (in secs)
+break_time_interval = 20
 
 gaze=GazeTracking()
 
@@ -41,6 +60,7 @@ def index():
 
 @app.route('/form-handler', methods=['POST'])
 def handle_data():
+	global name, mode
 	name = request.form['name']
 	mode = request.form['mode']
 	return render_template("working_page.html", mode=mode, name=name)
@@ -48,11 +68,13 @@ def handle_data():
 def head_pose(frameCount):
 	# grab global references to the video stream, output frame, and
 	# lock variables
-	global vs, outputFrame, lock, gaze
-
+	global vs, outputFrame, lock, gaze, now, message, counter_screen, counter_attention_lost, staring_screen, attention_lost
+	global name, mode
 	# initialize the motion detector and the total number of frames
 	# read thus far
 	total = 0
+	staring_screen = False
+	screen_timer = 0
 
 	# loop over frames from the video stream
 	while True:
@@ -73,20 +95,32 @@ def head_pose(frameCount):
 		gaze.refresh(frame)
 
 		frame = gaze.annotated_frame()
-		text = ""
+		#display the message depending on whether the user is looking at screen
+		#or lost attention (see end of this function where message is determined)
+		text = message
 
-		if gaze.is_blinking():
-			text = "Blinking"
+		# if gaze.is_blinking():
+		# 	text = "Blinking"
 
-		elif gaze.is_right():
-			text = "Looking right"
+		if gaze.is_right():
+			# text = "Looking right"
+			#increment attention lost counter by 1
+			counter_screen = counter_attention_lost + 1
+
 		elif gaze.is_left():
-			text = "Looking left"
-			socketio.emit('looking left', {'data': 30})
+			# text = "Looking left"
+			# increment attention lost counter by 1
+			counter_screen = counter_attention_lost + 1
+
 		elif gaze.is_center():
-			text = "Looking center"
+			# text = "Looking center"
+			#increment looking at screen counter by 1
+			counter_screen = counter_screen + 1
+
 		else:
-			text = "Attention lost"
+			# text = "Attention lost"
+			counter_attention_lost = counter_attention_lost + 1
+
 			#time.sleep(5)
 			# if (( not gaze.is_blinking()) or ( not gaze.is_left()) or ( not gaze.is_center())):
 			# 	threading.Thread(target=playsound, args=('sound1.wav',), daemon=True).start()
@@ -107,7 +141,45 @@ def head_pose(frameCount):
 		# lock
 		with lock:
 			outputFrame = frame.copy()
-		
+
+		#If more than one sec has passed since last comparison
+		if time.time() - now >= 1:
+			#check if lost attention more than looking at screen
+			if counter_attention_lost >= counter_screen:
+				message = "attention lost"
+				# socketio.emit('attention lost', {'data': 30})
+			else:
+				message = "staring at the screen"
+
+			#reset the timer
+			now = time.time()
+			#reset the counters
+			counter_attention_lost = 0
+			counter_screen = 0
+
+		# Check if current mode is study mode
+		if mode == 'Study':
+			#check if user is staring at screen
+			if message == "staring at the screen":
+				#check if user was not staring at screen before
+				if not staring_screen:
+					#start the timer
+					screen_timer = time.time()
+					#set the flag to true
+					staring_screen = True
+				else: #if user was already staring at screen before
+					#If break_time_interval passed
+					if time.time() - screen_timer >= break_time_interval:
+						#send class mode notification
+						socketio.emit('class mode notification', {'data': 30})
+						#reset staring_screen flag
+						staring_screen = False
+			else: #if the user is not staring at the screen
+				staring_screen = False
+		#check if mode is class mode
+		elif mode == 'Class':
+			pass
+
 def generate():
 	# grab global references to the output frame and lock variables
 	global outputFrame, lock
@@ -155,6 +227,7 @@ if __name__ == '__main__':
 	t = threading.Thread(target=head_pose, args=(
 		args["frame_count"],))
 	t.daemon = True
+	now = time.time()
 	t.start()
 
 	# start the flask app
@@ -162,6 +235,8 @@ if __name__ == '__main__':
 	# 	threaded=True, use_reloader=False)
 	socketio.run(app, host=args["ip"], port=args["port"], debug=True,
 		use_reloader=False)
+
+
 
 # release the video stream pointer
 vs.stop()
