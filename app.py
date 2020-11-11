@@ -15,6 +15,10 @@ import time
 import time
 import cv2
 
+
+# Loading the audio file
+#wave_obj = sa.WaveObject.from_wave_file("sound1.wav")
+
 # counters to keep track of number of eye position changes
 counter_screen = 0
 counter_attention_lost = 0
@@ -175,6 +179,8 @@ def head_pose(frameCount):
 					if time.time() - screen_timer >= break_time_interval:
 						#send class mode notification
 						socketio.emit('study mode notification', {'data': 30})
+						#wave_obj.play()
+						playsound('sound1.mp3', True)
 						#reset staring_screen flag
 						staring_screen = False
 			else: #if the user is not staring at the screen
@@ -188,6 +194,8 @@ def head_pose(frameCount):
 				else: # if attention lost before
 					if time.time()-screen_timer >= attention_lost_threshold:
 						socketio.emit('class mode notification', {'data': 30})
+						#wave_obj.play()
+						playsound('sound1.mp3', True)
 						attention_lost = False
 			else: # user is looking at the screen
 				attention_lost = False
