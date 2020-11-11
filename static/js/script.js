@@ -9,16 +9,12 @@ $(document).ready(function() {
              });
          });
 
-            socket.on('attention lost', function(){
-                alert("Attention lost!");
-            });
-
             socket.on('class mode notification', function(){
-                alert("Take a break!");
+                alert("You are distracted, get back to the class!");
             });
 
             socket.on('study mode notification', function(){
-                alert("You are distracted, get back to the class!");
+                alert("Take a break!");
             });
 
 

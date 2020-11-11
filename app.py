@@ -35,7 +35,7 @@ mode = ""
 break_time_interval = 20
 
 # For class mode: how many consecutive seconds of attention lost qualify a notifcation (in secs)
-attention_lost_threshold = 5
+attention_lost_threshold = 20
 
 gaze=GazeTracking()
 
@@ -174,7 +174,7 @@ def head_pose(frameCount):
 					#If break_time_interval passed
 					if time.time() - screen_timer >= break_time_interval:
 						#send class mode notification
-						socketio.emit('class mode notification', {'data': 30})
+						socketio.emit('study mode notification', {'data': 30})
 						#reset staring_screen flag
 						staring_screen = False
 			else: #if the user is not staring at the screen
@@ -187,7 +187,7 @@ def head_pose(frameCount):
 					attention_lost = True
 				else: # if attention lost before
 					if time.time()-screen_timer >= attention_lost_threshold:
-						socketio.emit('study mode notification', {'data': attention_lost_threshold})
+						socketio.emit('class mode notification', {'data': 30})
 						attention_lost = False
 			else: # user is looking at the screen
 				attention_lost = False
