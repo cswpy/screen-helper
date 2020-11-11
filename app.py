@@ -35,7 +35,7 @@ mode = ""
 break_time_interval = 20
 
 # For class mode: how many consecutive seconds of attention lost qualify a notifcation (in secs)
-attention_lost_threshold = 20
+attention_lost_threshold = 10
 
 gaze=GazeTracking()
 
