@@ -17,6 +17,11 @@ $(document).ready(function() {
                 alert("Take a break!");
             });
 
+            socket.on('study mode notification', function(){
+                alert("You are distracted, get back to the class!");
+            });
+
+
             var random_num = Math.ceil(Math.random() * 7);
             var string = "url('/static/images/relaxing_" + random_num + ".jpg')";
 

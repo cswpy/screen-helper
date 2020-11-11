@@ -34,6 +34,9 @@ mode = ""
 # For study mode: how often to send a break notification (in secs)
 break_time_interval = 20
 
+# For class mode: how many consecutive seconds of attention lost qualify a notifcation (in secs)
+attention_lost_threshold = 5
+
 gaze=GazeTracking()
 
 # initialize the output frame and a lock used to ensure thread-safe
@@ -178,7 +181,17 @@ def head_pose(frameCount):
 				staring_screen = False
 		#check if mode is class mode
 		elif mode == 'Class':
-			pass
+			if message == "attention lost":
+				if not attention_lost: #if attention lost for the first time
+					screen_timer = time.time()
+					attention_lost = True
+				else: # if attention lost before
+					if time.time()-screen_timer >= attention_lost_threshold:
+						socketio.emit('study mode notification', {'data': attention_lost_threshold})
+						attention_lost = False
+			else: # user is looking at the screen
+				attention_lost = False
+
 
 def generate():
 	# grab global references to the output frame and lock variables
