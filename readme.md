@@ -66,4 +66,8 @@ from your camera.
 - Reem Hazim
 - Yernar Mukayev
 
+
+Credits to Antoine Lame for eye tracker’s trained model files
+
+
 ## Known
