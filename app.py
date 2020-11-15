@@ -39,7 +39,7 @@ mode = ""
 break_time_interval = 1800		#default 30 min
 
 # For class mode: how many consecutive seconds of attention lost qualify a notifcation (in secs)
-attention_lost_threshold = 1800     #default 30 min
+attention_lost_threshold = 30     #default 30 seconds
 
 gaze=GazeTracking()
 
@@ -71,9 +71,9 @@ def handle_data():
 	name = request.form['name']
 	mode = request.form['mode']
 	if mode == "Study":
-		break_time_interval = int(request.form['interval']) * 60
-	else:
-		attention_lost_threshold = int(request.form['interval']) * 60
+		break_time_interval = float(request.form['study-interval']) * 60
+	elif mode == "Class":
+		attention_lost_threshold = float(request.form['class-interval']) * 60
 	return render_template("working_page.html", mode=mode, name=name)
 
 def head_pose(frameCount):

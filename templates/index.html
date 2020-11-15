@@ -40,9 +40,13 @@
         <input class="form-check-input" type="radio" name="mode" id="Study" value="Study">
         <label class="form-check-label" for="Study">study mode</label>
       </div>
-      <div class="form-group my-3">
-        <label for="interval">Notify me every:</label>
-        <input type="number" class="form-control" id="interval" name="interval"> minutes
+      <div class="form-group my-3 d-none" id="interval-study">
+        <label for="study-interval">Remind me to rest my eyes every:</label>
+        <input type="number" class="form-control" id="study-interval" name="study-interval" step=".5"> minutes
+      </div>
+      <div class="form-group my-3 d-none" id="interval-class">
+        <label for="class-interval">Notify me if I'm distracted for more than:</label>
+        <input type="number" class="form-control" id="class-interval" name="class-interval" step=".5"> minutes
       </div>
       <button type="submit" class="btn btn-light d-block mx-auto my-2">Start!</button>
     </form>
@@ -56,6 +60,27 @@
             var random_num = Math.ceil(Math.random() * 7);
             var string = "url('/static/images/relaxing_" + random_num + ".jpg')";
             $( "body" ).css("background-image", string);
+
+            $("#Study").click(function(){
+              if ($('#Study').prop('checked') == true) {
+                  $("#interval-study").removeClass("d-none");
+                  $("#interval-class").addClass("d-none");
+              }
+              else{
+                $("#interval-study").addClass("d-none");
+              }
+            });
+
+            $("#Class").click(function(){
+              if ($('#Class').prop('checked') == true) {
+                  $("#interval-class").removeClass("d-none");
+                  $("#interval-study").addClass("d-none");
+              }
+              else{
+                $("#interval-class").addClass("d-none");
+              }
+            });
+
     </script>
   </body>
 </html>

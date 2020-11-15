@@ -49,7 +49,7 @@ College is hard, finishing college online with zoom calls and no friends is part
 - After running, the web app will be hosted at `http://<ip address>:<port>/`. 
 Paste this address in a web browser. The landing page will ask you to fill a form with 
 your name and your choice of mode. After choosing the mode, choose the interval for which you want
-the application to notify you (in minutes). Once you've filled the form, you're ready for a productive
+the application to notify you (in minutes). Half-minutes are also accepted (e.g. 2.5 minutes). Once you've filled the form, you're all set up for a productive
 online session!  
 
 #### Modes
