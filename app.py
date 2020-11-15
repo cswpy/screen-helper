@@ -36,10 +36,10 @@ name = ""
 mode = ""
 
 # For study mode: how often to send a break notification (in secs)
-break_time_interval = 20
+break_time_interval = 1800		#default 30 min
 
 # For class mode: how many consecutive seconds of attention lost qualify a notifcation (in secs)
-attention_lost_threshold = 10
+attention_lost_threshold = 1800     #default 30 min
 
 gaze=GazeTracking()
 
@@ -67,9 +67,13 @@ def index():
 
 @app.route('/form-handler', methods=['POST'])
 def handle_data():
-	global name, mode
+	global name, mode, break_time_interval, attention_lost_threshold
 	name = request.form['name']
 	mode = request.form['mode']
+	if mode == "Study":
+		break_time_interval = int(request.form['interval']) * 60
+	else:
+		attention_lost_threshold = int(request.form['interval']) * 60
 	return render_template("working_page.html", mode=mode, name=name)
 
 def head_pose(frameCount):

@@ -48,7 +48,9 @@ College is hard, finishing college online with zoom calls and no friends is part
 ### Usage
 - After running, the web app will be hosted at `http://<ip address>:<port>/`. 
 Paste this address in a web browser. The landing page will ask you to fill a form with 
-your name and your choice of mode.
+your name and your choice of mode. After choosing the mode, choose the interval for which you want
+the application to notify you (in minutes). Once you've filled the form, you're ready for a productive
+online session!  
 
 #### Modes
 - `Study mode`: Choose this mode if you are planning on studying/working on your laptop for a prolonged
